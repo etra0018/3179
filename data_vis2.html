@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beef Cattle Population in Australian States(2023)</title>
+</head>
+<body>
+    <h1>Beef Cattle Population in Australian States(2023)</h1>
+    <h2>Map of Australian cattle</h2>
+    <html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5.30.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
+</head>
+<body>
+  <div id="vis"/>
+  <script>
+    const spec = {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Beef Cattle Population in Australian States/Territories (2023)",
+  "width": 800,
+  "height": 600,
+  "projection": {"type": "equirectangular", "center": [133, -28], "scale": 900},
+  "layer": [
+    {
+      "data": {
+        "url": "https://raw.githubusercontent.com/etra0018/3179/main/australia.json",
+        "format": {"type": "topojson", "feature": "australia"}
+      },
+      "transform": [
+        {
+          "calculate": "datum.properties && datum.properties.name ? datum.properties.name : 'Unknown'",
+          "as": "state_name"
+        },
+        {
+          "calculate": "{'Western Australia': 'Western Australia', 'Northern Territory': 'Northern Territory', 'South Australia': 'South Australia', 'Queensland': 'Queensland', 'New South Wales': 'New South Wales', 'Victoria': 'Victoria', 'Tasmania': 'Tasmania', 'Australian Capital Territory': 'Australian Capital Territory'}[datum.state_name]",
+          "as": "csv_state_name"
+        },
+        {
+          "lookup": "csv_state_name",
+          "from": {
+            "data": {
+              "url": "https://raw.githubusercontent.com/etra0018/3179/main/formatted%20data%20vis2.csv"
+            },
+            "key": "Region",
+            "fields": ["2023"]
+          }
+        },
+        {
+          "calculate": "datum['2023'] != null ? toNumber(replace(datum['2023'], ',', '')) : 0",
+          "as": "cattle_population"
+        },
+        {
+          "calculate": "datum.state_name + ' | ' + (datum.csv_state_name || 'Not Matched') + ' | ' + datum.cattle_population",
+          "as": "debug_info"
+        }
+      ],
+      "mark": {"type": "geoshape", "stroke": "white", "strokeWidth": 1},
+      "encoding": {
+        "color": {
+          "field": "cattle_population",
+          "type": "quantitative",
+          "title": "Beef Cattle Population",
+          "scale": {
+            "type": "threshold",
+            "domain": [1000000, 3000000, 6000000, 13000000],
+            "range": ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "state_name",
+            "type": "nominal",
+            "title": "State/Territory"
+          },
+          {
+            "field": "cattle_population",
+            "type": "quantitative",
+            "title": "Beef Cattle (2023)",
+            "format": ","
+          },
+          {"field": "debug_info", "type": "nominal", "title": "Debug Info"}
+        ]
+      }
+    }
+  ],
+  "config": {}
+};
+    vegaEmbed("#vis", spec, {mode: "vega-lite"}).then(console.log).catch(console.warn);
+  </script>
+</body>
+</html>
+</body>
+</html>
