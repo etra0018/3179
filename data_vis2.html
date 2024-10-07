@@ -15,82 +15,174 @@
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
 </head>
 <body>
-  <div id="vis"/>
+  <h1>Beef Cattle Population in Australian States (2023)</h1>
+  
+  <h2>Map of Australian cattle</h2>
+  <div id="vis"></div>
+  
+  <h2>Value of Livestock in Australian States/Territories (2019-2023)</h2>
+  <div id="vis2"></div>
+
   <script>
-    const spec = {
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "title": "Beef Cattle Population in Australian States/Territories (2023)",
-  "width": 800,
-  "height": 600,
-  "projection": {"type": "equirectangular", "center": [133, -28], "scale": 900},
-  "layer": [
-    {
-      "data": {
-        "url": "https://raw.githubusercontent.com/etra0018/3179/main/australia.json",
-        "format": {"type": "topojson", "feature": "australia"}
-      },
-      "transform": [
-        {
-          "calculate": "datum.properties && datum.properties.name ? datum.properties.name : 'Unknown'",
-          "as": "state_name"
-        },
-        {
-          "calculate": "{'Western Australia': 'Western Australia', 'Northern Territory': 'Northern Territory', 'South Australia': 'South Australia', 'Queensland': 'Queensland', 'New South Wales': 'New South Wales', 'Victoria': 'Victoria', 'Tasmania': 'Tasmania', 'Australian Capital Territory': 'Australian Capital Territory'}[datum.state_name]",
-          "as": "csv_state_name"
-        },
-        {
-          "lookup": "csv_state_name",
-          "from": {
-            "data": {
-              "url": "https://raw.githubusercontent.com/etra0018/3179/main/formatted%20data%20vis2.csv"
-            },
-            "key": "Region",
-            "fields": ["2023"]
-          }
-        },
-        {
-          "calculate": "datum['2023'] != null ? toNumber(replace(datum['2023'], ',', '')) : 0",
-          "as": "cattle_population"
-        },
-        {
-          "calculate": "datum.state_name + ' | ' + (datum.csv_state_name || 'Not Matched') + ' | ' + datum.cattle_population",
-          "as": "debug_info"
-        }
-      ],
-      "mark": {"type": "geoshape", "stroke": "white", "strokeWidth": 1},
-      "encoding": {
-        "color": {
-          "field": "cattle_population",
-          "type": "quantitative",
-          "title": "Beef Cattle Population",
-          "scale": {
-            "type": "threshold",
-            "domain": [1000000, 3000000, 6000000, 13000000],
-            "range": ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
-          }
-        },
-        "tooltip": [
-          {
-            "field": "state_name",
-            "type": "nominal",
-            "title": "State/Territory"
+      // First visualization (Map)
+      const spec1 = {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Beef Cattle Population in Australian States/Territories (2023)",
+          "width": 800,
+          "height": 600,
+          "projection": {"type": "equirectangular", "center": [133, -28], "scale": 900},
+          "layer": [
+              {
+                  "mark": {"type": "geoshape", "fill": "#c0d1e7"},
+                  "data": {"values": [{"type": "Sphere"}]}
+              },
+              {
+                  "data": {
+                      "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/australia.json",
+                      "format": {
+                          "type": "topojson",
+                          "feature": "ne_10m_admin_1_states_provinces"
+                      }
+                  },
+                  "params": [
+                      {
+                          "name": "legend_selection",
+                          "select": {
+                              "type": "point",
+                              "fields": ["cattle_population"],
+                              "on": "click",
+                              "clear": "dblclick"
+                          },
+                          "bind": "legend"
+                      }
+                  ],
+                  "transform": [
+                      {
+                          "lookup": "properties.name",
+                          "from": {
+                              "data": {
+                                  "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/formatted%20data%20vis2.csv"
+                              },
+                              "key": "Region",
+                              "fields": ["2023"]
+                          }
+                      },
+                      {
+                          "calculate": "datum['2023'] != null ? toNumber(replace(datum['2023'], ',', '')) : 0",
+                          "as": "cattle_population"
+                      }
+                  ],
+                  "mark": {"type": "geoshape", "stroke": "white", "strokeWidth": 1},
+                  "encoding": {
+                      "color": {
+                          "field": "cattle_population",
+                          "type": "quantitative",
+                          "title": "Beef Cattle Population",
+                          "scale": {
+                              "type": "threshold",
+                              "domain": [1000000, 3000000, 6000000, 13000000],
+                              "range": ["#c7e394", "#407138", "#08542f", "#265409", "#012d21"]
+                          }
+                      },
+                      "tooltip": [
+                          {
+                              "field": "properties.name",
+                              "type": "nominal",
+                              "title": "State/Territory"
+                          },
+                          {
+                              "field": "cattle_population",
+                              "type": "quantitative",
+                              "title": "Beef Cattle (2023)",
+                              "format": ","
+                          }
+                      ],
+                      "opacity": {
+                          "condition": {"param": "legend_selection", "value": 1},
+                          "value": 0.2
+                      }
+                  }
+              }
+          ],
+          "config": {}
+      };
+
+      // Second visualization (Bar chart)
+      const spec2 = {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Value of Livestock in Australian States/Territories (2019-2023)",
+          "width": 600,
+          "height": 400,
+          "data": {
+              "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/formatted%20data-%20Value%20of%20livestock%20in%20each%20state%202019-2023.csv"
           },
-          {
-            "field": "cattle_population",
-            "type": "quantitative",
-            "title": "Beef Cattle (2023)",
-            "format": ","
+          "params": [
+              {
+                  "name": "Year_selection",
+                  "value": "2023",
+                  "bind": {
+                      "input": "select",
+                      "options": ["2019", "2020", "2021", "2022", "2023"],
+                      "labels": ["2019", "2020", "2021", "2022", "2023"],
+                      "name": "Select Year: "
+                  }
+              }
+          ],
+          "transform": [
+              {
+                  "lookup": "Region",
+                  "from": {
+                      "data": {
+                          "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/formatted%20data-%20Value%20of%20livestock%20in%20each%20state%202019-2023.csv"
+                      },
+                      "key": "Region",
+                      "fields": ["Data item", "2019", "2020", "2021", "2022", "2023"]
+                  }
+              },
+              {
+                  "calculate": "datum[Year_selection] != null ? parseFloat(replace(datum[Year_selection], ',', '')) : 0",
+                  "as": "livestock_value"
+              }
+          ],
+          "mark": "bar",
+          "encoding": {
+              "x": {
+                  "field": "Region",
+                  "type": "nominal",
+                  "title": "State/Territory",
+                  "axis": {"labelAngle": -45}
+              },
+              "y": {
+                  "field": "livestock_value",
+                  "type": "quantitative",
+                  "title": "Livestock Value ($)",
+                  "axis": {"format": "~s"}
+              },
+              "color": {
+                  "field": "Data item",
+                  "type": "nominal",
+                  "title": "Livestock Type",
+                  "scale": {
+                      "domain": ["Wool - Local value ($)", "Milk - Local value ($)"],
+                      "range": ["gray", "lightblue"]
+                  }
+              },
+              "tooltip": [
+                  {"field": "Region", "type": "nominal", "title": "State/Territory"},
+                  {"field": "Data item", "type": "nominal", "title": "Livestock Type"},
+                  {
+                      "field": "livestock_value",
+                      "type": "quantitative",
+                      "title": "Value ($)",
+                      "format": ",.0f"
+                  }
+              ]
           },
-          {"field": "debug_info", "type": "nominal", "title": "Debug Info"}
-        ]
-      }
-    }
-  ],
-  "config": {}
-};
-    vegaEmbed("#vis", spec, {mode: "vega-lite"}).then(console.log).catch(console.warn);
+          "config": {}
+      };
+   // Embed visualizations
+   vegaEmbed("#vis", spec1, {mode: "vega-lite"}).then(console.log).catch(console.warn);
+  vegaEmbed("#vis2", spec2, {mode: "vega-lite"}).then(console.log).catch(console.warn);
   </script>
-</body>
-</html>
 </body>
 </html>
