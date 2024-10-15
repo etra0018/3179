@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beef Cattle Population in Australian States(2023)</title>
+    <title>Australian Agriculture: Livestock 2019-2023</title>
 </head>
 <body>
     <html>
@@ -12,175 +12,456 @@
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
 </head>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #d5e5db;
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+     /* Header Bar */
+     .header {
+            background-color: #eef7f2; 
+            padding: 20px;
+            text-align: center;
+            color: #ecf0f1; 
+        }
+
+        .header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold; 
+        color: #5c7362;
+    }
+
+    h1 {
+        font-size: 2.5em;
+        color: #5c7362;
+    }
+    p {
+        font-size: 1em;
+        color: #555c67;
+    }
+
+    #vis, #vis2, #vis3  {
+        margin: 10px auto;
+    }
+</style>
 <body>
-  <h1>Beef Cattle Population in Australian States (2023)</h1>
-  
-  <h2>Map of Australian cattle</h2>
+  <div class="header">
+        <h1>Australian Agriculture: Livestock 2019-2023</h1>
+        <p>The Australian Bureau of Statistics (ABS) is modernising the way official agricultural statistics are produced to better support Australian agriculture. This visualization aims to display these recently released statistics in informative ways that inspires viewers to explore these topics and discover trends. The data covers a wider variety of Australian cattle and related topics.     </p>
+    </div>
+ 
+ 
   <div id="vis"></div>
-  
-  <h2>Value of Livestock in Australian States/Territories (2019-2023)</h2>
+
+  <p>Hover over each state for more detail and specific statistics. Click on a state to make it a focus point.</p>
+
   <div id="vis2"></div>
 
+  <p>
+    The value of livestock products refers to the local value of milk and wool sold. Use the navigation tools provided to cycle through each year and select what produce you want to view.
+
+  </p>
+
+  <div id="vis3"></div>
+
+  <p>
+    The value of Livestock disposals refers to the local value of livestock and poultry slaughtered. 
+    This visualisation aims to track all categories of animal disposals (cattle, sheep, pig, poultry and other) and how the rate changes over the years. Use the dropdown menu to view the data in each state using the dropdown menu.
+
+    Some states focus more of different types of animals. eg. Northern Territory does not have any data collected on pig, poultry or sheep disposals which leads us to believe it is not a priority in this state as the data has not been recorded.
+  </p>
   <script>
       // First visualization (Map)
       const spec1 = {
-          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-          "title": "Beef Cattle Population in Australian States/Territories (2023)",
-          "width": 800,
-          "height": 600,
-          "projection": {"type": "equirectangular", "center": [133, -28], "scale": 900},
-          "layer": [
-              {
-                  "mark": {"type": "geoshape", "fill": "#c0d1e7"},
-                  "data": {"values": [{"type": "Sphere"}]}
-              },
-              {
-                  "data": {
-                      "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/australia.json",
-                      "format": {
-                          "type": "topojson",
-                          "feature": "ne_10m_admin_1_states_provinces"
-                      }
-                  },
-                  "params": [
-                      {
-                          "name": "legend_selection",
-                          "select": {
-                              "type": "point",
-                              "fields": ["cattle_population"],
-                              "on": "click",
-                              "clear": "dblclick"
-                          },
-                          "bind": "legend"
-                      }
-                  ],
-                  "transform": [
-                      {
-                          "lookup": "properties.name",
-                          "from": {
-                              "data": {
-                                  "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/formatted%20data%20vis2.csv"
-                              },
-                              "key": "Region",
-                              "fields": ["2023"]
-                          }
-                      },
-                      {
-                          "calculate": "datum['2023'] != null ? toNumber(replace(datum['2023'], ',', '')) : 0",
-                          "as": "cattle_population"
-                      }
-                  ],
-                  "mark": {"type": "geoshape", "stroke": "white", "strokeWidth": 1},
-                  "encoding": {
-                      "color": {
-                          "field": "cattle_population",
-                          "type": "quantitative",
-                          "title": "Beef Cattle Population",
-                          "scale": {
-                              "type": "threshold",
-                              "domain": [1000000, 3000000, 6000000, 13000000],
-                              "range": ["#c7e394", "#407138", "#08542f", "#265409", "#012d21"]
-                          }
-                      },
-                      "tooltip": [
-                          {
-                              "field": "properties.name",
-                              "type": "nominal",
-                              "title": "State/Territory"
-                          },
-                          {
-                              "field": "cattle_population",
-                              "type": "quantitative",
-                              "title": "Beef Cattle (2023)",
-                              "format": ","
-                          }
-                      ],
-                      "opacity": {
-                          "condition": {"param": "legend_selection", "value": 1},
-                          "value": 0.2
-                      }
-                  }
-              }
-          ],
-          "config": {}
-      };
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Beef Cattle Population in Australian States/Territories (2023)",
+  "width": 800,
+  "height": 600,
+  "projection": {
+    "type": "equirectangular",
+    "center": [133, -28],
+    "scale": 900
+  },
+  "layer": [
+    {
+      "mark": {"type": "geoshape", "fill": "#c0d1e7"},
+      "data": {"values": [{"type": "Sphere"}]}
+    },
+    {
+      "data": {
+        "url": "https://raw.githubusercontent.com/FIT3179/Vega-Lite/main/2_symbol_map/js/WorldMapWithGraticules.topojson",
+        "format": {"type": "topojson", "feature": "ne_110m_graticules_30"}
+      },
+      "mark": {"type": "geoshape", "fill": null, "stroke": "#b1bece"}
+    },
+    {
+      "data": {
+        "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/australia.json",
+        "format": {
+          "type": "topojson",
+          "feature": "ne_10m_admin_1_states_provinces"
+        }
+      },
+      "params": [
+        {
+          "name": "legend_selection",
+          "select": {
+            "type": "point",
+            "fields": ["cattle_population"],
+            "on": "click",
+            "clear": "dblclick"
+          },
+          "bind": "legend"
+        }
+      ],
+      "transform": [
+        {
+          "lookup": "properties.name",
+          "from": {
+            "data": {
+              "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/formatted%20data%20vis2.csv"
+            },
+            "key": "Region",
+            "fields": ["2023"]
+          }
+        },
+        {
+          "calculate": "datum['2023'] != null ? toNumber(replace(datum['2023'], ',', '')) : 0",
+          "as": "cattle_population"
+        }
+      ],
+      "mark": {"type": "geoshape", "stroke": "white", "strokeWidth": 1},
+      "encoding": {
+        "color": {
+          "field": "cattle_population",
+          "type": "quantitative",
+          "title": "Beef Cattle Population",
+          "scale": {
+            "type": "threshold",
+            "domain": [1000000, 3000000, 6000000, 13000000],
+            "range": ["#c7e394", "#407138", "#08542f", "#265409", "#012d21"]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "properties.name",
+            "type": "nominal",
+            "title": "State: "
+          },
+          {
+            "field": "cattle_population",
+            "type": "quantitative",
+            "title": "No. Beef Cattle: ",
+            "format": ","
+          }
+        ],
+        "opacity": {
+          "condition": {"param": "legend_selection", "value": 1},
+          "value": 0.2
+        }
+      }
+    }
+  ],
+  "config": {
+    "axis": {
+      "labelFontSize": 12,
+      "titleFontSize": 14
+    },
+    "legend": {
+      "labelFontSize": 12,
+      "titleFontSize": 14,
+      "labelFont": "monospace", "titleFont": "monospace"
+    },
+    "title": {
+        "font": "monospace",
+        "subtitleFont": "monospace",
+        "fontSize": 18
+    }
+  }
+};
 
       // Second visualization (Bar chart)
       const spec2 = {
-          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-          "title": "Value of Livestock in Australian States/Territories (2019-2023)",
-          "width": 600,
-          "height": 400,
-          "data": {
-              "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/formatted%20data-%20Value%20of%20livestock%20in%20each%20state%202019-2023.csv"
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Value of Wool and Milk in Australian States/Territories (2019-2023)",
+  "width": 600,
+  "height": 400,
+  "data": {
+    "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/formatted%20data-%20Value%20of%20livestock%20in%20each%20state%202019-2023.csv"
+  },
+  "params": [
+    {
+      "name": "Year_selection",
+      "value": 2023,
+      "bind": {
+        "input": "range",
+        "min": 2019,
+        "max": 2023,
+        "step": 1,
+        "name": "Select Year: "
+      }
+    },
+    {
+      "name": "Livestock_type",
+      "value": "Wool - Local value ($)",
+      "bind": {
+        "input": "select",
+        "options": ["Wool - Local value ($)", "Milk - Local value ($)"],
+        "labels": ["Wool", "Milk"],
+        "name": "Select Livestock Type: "
+      }
+    }
+  ],
+  "transform": [
+    {
+      "calculate": "datum[Year_selection] ? parseFloat(datum[Year_selection]) : 0",
+      "as": "livestock_value"
+    },
+    {
+      "filter": "datum['Data item'] == Livestock_type"
+    },
+    {
+      "filter": "datum.Region !== 'Australia'"
+    },
+    {
+      "filter": "datum.livestock_value > 0"
+    }
+  ],
+  "layer": [
+    {
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "field": "Region",
+          "type": "nominal",
+          "title": "State/Territory",
+          "axis": {"labelAngle": -45}
+        },
+        "y": {
+          "field": "livestock_value",
+          "type": "quantitative",
+          "title": "Livestock Value ($)",
+          "axis": {"format": "~s"},
+          "scale": {
+            "domainMin": 0,
+            "nice": true
+          }
+        },
+        "color": {
+          "field": "Data item",
+          "type": "nominal",
+          "title": "Livestock Type",
+          "scale": {
+            "domain": ["Wool - Local value ($)", "Milk - Local value ($)"],
+            "range": ["#08542f", "#c0d1e7"]
+          }
+        },
+        "tooltip": [
+          {"field": "Region", "type": "nominal", "title": "State: "},
+          {"field": "Data item", "type": "nominal", "title": "Livestock Type: "},
+          {
+            "field": "livestock_value",
+            "type": "quantitative",
+            "title": "Value ($):",
+            "format": ",.0f"
+          }
+        ]
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "baseline": "top",
+        "dx": 5,
+        "dy": 5,
+        "fontSize": 12,
+        "fontStyle": "italic"
+      },
+      "encoding": {
+        "text": {"value": "NSW leads in wool production majority of every year"},
+        "x": {"value": 10},
+        "y": {"value": 10}
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "baseline": "top",
+        "dx": 5,
+        "dy": 5,
+        "fontSize": 12,
+        "fontStyle": "italic"
+      },
+      "encoding": {
+        "text": {"value": "Victoria has the highest milk production every year"},
+        "x": {"value": 350},
+        "y": {"value": 60}
+      }
+    }
+  ],
+  "config": {
+    "axis": {
+      "labelFontSize": 12,
+      "titleFontSize": 14
+    },
+    "legend": {
+      "labelFontSize": 12,
+      "titleFontSize": 14,
+      "labelFont": "monospace",
+      "titleFont": "monospace"
+    },
+    "title": {
+      "font": "monospace",
+      "subtitleFont": "monospace",
+      "fontSize": 18
+    }
+  }
+};
+
+//Third visualisation (stacked area chart)
+    const spec3 = {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Types of disposals done in each state in Australia (2019-2023)",
+  "width": 600,
+  "height": 400,
+  "data": {
+    "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/Value%20of%20livestock%20disposals-%20formatted.csv",
+    "format": {
+      "type": "csv",
+      "nullValue": "np"
+    }
+  },
+  "params": [
+    {
+      "name": "State_selection",
+      "value": "New South Wales",
+      "bind": {
+        "input": "select",
+        "options": [
+          "New South Wales",
+          "Victoria",
+          "Queensland",
+          "South Australia",
+          "Western Australia",
+          "Tasmania",
+          "Northern Territory",
+          "Australian Capital Territory"
+        ],
+        "labels": [
+          "New South Wales",
+          "Victoria",
+          "Queensland",
+          "South Australia",
+          "Western Australia",
+          "Tasmania",
+          "Northern Territory",
+          "Australian Capital Territory"
+        ],
+        "name": "Select state: "
+      }
+    }
+  ],
+  "transform": [
+    {
+      "fold": ["2019", "2020", "2021", "2022", "2023"],
+      "as": ["Year", "Value"]
+    },
+    {
+      "filter": "datum.Value != null && datum.Value != 'np'"
+    },
+    {
+      "calculate": "replace(datum['Data item'], ' disposals - Local value ($)', '')",
+      "as": "Category"
+    },
+    {
+      "filter": "datum.Region == State_selection"
+    },
+    {
+      "calculate": "toNumber(datum.Value)",
+      "as": "NumericValue"
+    }
+  ],
+  "layer": [
+    {
+      "mark": "area",
+      "encoding": {
+        "x": {
+          "field": "Year",
+          "type": "ordinal",
+          "axis": {
+            "title": "Year",
+            "labelAngle": 0
+          }
+        },
+        "y": {
+          "aggregate": "sum",
+          "field": "NumericValue",
+          "type": "quantitative",
+          "axis": {
+            "title": "Local Value ($)"
+          }
+        },
+        "color": {
+          "field": "Category",
+          "type": "nominal",
+          "scale": {
+            "range": ["#7084a3", "#c0d1e7", "#eecc65", "#c7e394", "#407138"] 
           },
-          "params": [
-              {
-                  "name": "Year_selection",
-                  "value": "2023",
-                  "bind": {
-                      "input": "select",
-                      "options": ["2019", "2020", "2021", "2022", "2023"],
-                      "labels": ["2019", "2020", "2021", "2022", "2023"],
-                      "name": "Select Year: "
-                  }
-              }
-          ],
-          "transform": [
-              {
-                  "lookup": "Region",
-                  "from": {
-                      "data": {
-                          "url": "https://raw.githubusercontent.com/etra0018/3179/refs/heads/main/formatted%20data-%20Value%20of%20livestock%20in%20each%20state%202019-2023.csv"
-                      },
-                      "key": "Region",
-                      "fields": ["Data item", "2019", "2020", "2021", "2022", "2023"]
-                  }
-              },
-              {
-                  "calculate": "datum[Year_selection] != null ? parseFloat(replace(datum[Year_selection], ',', '')) : 0",
-                  "as": "livestock_value"
-              }
-          ],
-          "mark": "bar",
-          "encoding": {
-              "x": {
-                  "field": "Region",
-                  "type": "nominal",
-                  "title": "State/Territory",
-                  "axis": {"labelAngle": -45}
-              },
-              "y": {
-                  "field": "livestock_value",
-                  "type": "quantitative",
-                  "title": "Livestock Value ($)",
-                  "axis": {"format": "~s"}
-              },
-              "color": {
-                  "field": "Data item",
-                  "type": "nominal",
-                  "title": "Livestock Type",
-                  "scale": {
-                      "domain": ["Wool - Local value ($)", "Milk - Local value ($)"],
-                      "range": ["gray", "lightblue"]
-                  }
-              },
-              "tooltip": [
-                  {"field": "Region", "type": "nominal", "title": "State/Territory"},
-                  {"field": "Data item", "type": "nominal", "title": "Livestock Type"},
-                  {
-                      "field": "livestock_value",
-                      "type": "quantitative",
-                      "title": "Value ($)",
-                      "format": ",.0f"
-                  }
-              ]
-          },
-          "config": {}
-      };
+          "legend": {
+            "title": "Type of Disposal"
+          }
+        },
+        "tooltip": [
+          {"field": "Year", "type": "ordinal", "title": "Year:"},
+          {"field": "Category", "type": "nominal", "title": "Disposal Type:"},
+          {"field": "NumericValue", "type": "quantitative", "title": "Value ($:)", "format": ",.0f"}
+        ]
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "right",
+        "baseline": "middle",
+        "fontSize": 14,
+        "fontStyle": "italic"
+      },
+      "encoding": {
+        "x": {"value": 750},
+        "y": {"value": 110},
+        "text": {"value": "General significant increase in cattle disposals"}
+      }
+    }
+  ],
+  "config": {
+    "axis": {
+      "labelFontSize": 12,
+      "titleFontSize": 14
+    },
+    "legend": {
+      "labelFontSize": 12,
+      "titleFontSize": 14,
+      "labelFont": "monospace", "titleFont": "monospace"
+    },
+    "title": {
+        "font": "monospace",
+        "subtitleFont": "monospace",
+        "fontSize": 18
+    }
+  }
+};
    // Embed visualizations
    vegaEmbed("#vis", spec1, {mode: "vega-lite"}).then(console.log).catch(console.warn);
-  vegaEmbed("#vis2", spec2, {mode: "vega-lite"}).then(console.log).catch(console.warn);
+   vegaEmbed("#vis2", spec2, {mode: "vega-lite"}).then(console.log).catch(console.warn);
+   vegaEmbed("#vis3", spec3, {mode: "vega-lite"}).then(console.log).catch(console.warn);
   </script>
 </body>
 </html>
